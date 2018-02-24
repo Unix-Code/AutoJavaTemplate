@@ -11,7 +11,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,7 @@ public class Main {
     public static void main(String[] args) {
         Main main = new Main();
 
-        String path = "src\\main\\java\\com\\davidmalakh\\autojavatemplate\\TestCase.java";
+        String path = args[0];
 
         main.addTemplatesToFile(path);
     }
