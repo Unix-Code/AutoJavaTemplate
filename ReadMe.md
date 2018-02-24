@@ -4,7 +4,7 @@ Finished:
 - Class templates
 - "everything from super"
 - undoes previous comments for mutiple run attempts
+- Method Templates
 
 W.I.P :
-- Method Templates
 - Other features
