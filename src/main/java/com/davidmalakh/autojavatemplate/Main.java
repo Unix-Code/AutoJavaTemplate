@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,8 +23,7 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-        System.out.println(Paths.get("").toAbsolutePath().toString());
-        String path = "src\\main\\java\\com\\davidmalakh\\autojavatemplate\\TestCase.java";//args[0];
+        String path = args[0];
 
         main.addTemplatesToFile(path);
     }
