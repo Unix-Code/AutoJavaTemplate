@@ -1,96 +1,216 @@
 package com.davidmalakh.autojavatemplate;
 
-public class TestCase {
+interface IFunc2<Arg1, Arg2, Ret> {
+  Ret apply(Arg1 a1, Arg2 a2);
+}
+
+interface IFunc<Arg, Ret> {
+  Ret apply(Arg a);
+}
+
+interface IArithVisitor<R> extends IFunc<IArith, R> {
+  R visitConst(Const c);
+
+  R visitFormula(Formula f);
+}
+
+interface IArith {
+  <R> R accept(IArithVisitor<R> visitor);
+}
+
+class Const implements IArith {
 	/*-
 	* FIELDS:
-	* this.a --int
-	* this.b --int
-	* this.c --int
-	* this.l --ALower
+	* this.num --double
 	* METHODS:
-	* this.doIt(Lower that) --double
-	* METHODS FROM FIELDS:
-	* this.l.doAbstractThing(int thing2) --int
+	* this.accept(IArithVisitor visitor) --R
 	-*/
-    int a;
-    int b;
-    int c;
-    ALower l;
+  double num;
 
-    public TestCase(int a, int b, int c, ALower l) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.l = l;
-    }
-    
-    public double doIt(Lower that) {
+  Const(double num) {
+    this.num = num;
+  }
+
+  public <R> R accept(IArithVisitor<R> visitor) {
+    return visitor.visitConst(this);
+  }
+}
+
+class Formula implements IArith {
+	/*-
+	* FIELDS:
+	* this.fun --IFunc2
+	* this.name --String
+	* this.left --IArith
+	* this.right --IArith
+	* METHODS:
+	* this.accept(IArithVisitor visitor) --R
+	-*/
+  IFunc2<Double, Double, Double> fun;
+  String name;
+  IArith left;
+  IArith right;
+
+  Formula(IFunc2<Double, Double, Double> fun, String name, IArith left, IArith right) {
+    this.fun = fun;
+    this.name = name;
+    this.left = left;
+    this.right = right;
+  }
+
+  public <R> R accept(IArithVisitor<R> visitor) {
+    return visitor.visitFormula(this);
+  }
+}
+
+class EvalVisitor implements IArithVisitor<Double> {
+	/*-
+	* METHODS:
+	* this.apply(IArith a) --Double
+	* this.visitConst(Const c) --Double
+	* this.visitFormula(Formula f) --Double
+	-*/
+
+  public Double apply(IArith a) {
+    return a.accept(this);
+  }
+
+  public Double visitConst(Const c) {
 		/*-
 		* METHODS FROM PARAMS:
-		* this.that.doThing(int thing1, String otherThing1, Double lastThing1) --String
-		* this.that.abstractMethod(int ap) --int
+		* this.c.accept(IArithVisitor visitor) --R
 		-*/
-        return 0.0;
-    }
+    return c.num;
+  }
+
+  public Double visitFormula(Formula f) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.f.accept(IArithVisitor visitor) --R
+		-*/
+    return f.fun.apply(this.apply(f.left), this.apply(f.right));
+  }
 }
 
-abstract class ALower {
+class PrintVisitor implements IArithVisitor<String> {
 	/*-
-	* FIELDS:
-	* this.y --int
 	* METHODS:
-	* this.doAbstractThing(int thing2) --int
+	* this.apply(IArith a) --String
+	* this.visitConst(Const c) --String
+	* this.visitFormula(Formula f) --String
 	-*/
-    int y;
 
-    public ALower(int y) {
-        this.y = y;
-    }
-    
-    public int doAbstractThing(int thing2) {
-        return 0;
-    }
-    
-    abstract int abstractMethod(int ap);
+  public String apply(IArith a) {
+    return a.accept(this);
+  }
+
+  public String visitConst(Const c) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.c.accept(IArithVisitor visitor) --R
+		-*/
+    return Double.toString(c.num);
+  }
+
+  public String visitFormula(Formula f) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.f.accept(IArithVisitor visitor) --R
+		-*/
+    return "(" + f.name + " " + this.apply(f.left) + " " + this.apply(f.right) + ")";
+  }
 }
 
-class Lower extends ALower {
+class DoublerVisitor implements IArithVisitor<IArith> {
 	/*-
-	* FIELDS:
-	* this.x --int
-	* this.b --int
 	* METHODS:
-	* this.doThing(int thing1, String otherThing1, Double lastThing1) --String
-	* this.abstractMethod(int ap) --int
-	*
-	* PLUS EVERYTHING FROM SUPER CLASS:  ALower
+	* this.apply(IArith a) --IArith
+	* this.visitConst(Const c) --IArith
+	* this.visitFormula(Formula f) --IArith
 	-*/
-    int x;
-    int b;
 
-    public Lower(int x, int b, int y) {
-        super(y);
-        this.x = x;
-        this.b = b;
-    }
-    
-    public String doThing(int thing1, String otherThing1, Double lastThing1) {
-        return "";
-    }
+  public IArith apply(IArith a) {
+    return a.accept(this);
+  }
 
-    int abstractMethod(int ap) {
-        return 0;
-    }
+  public IArith visitConst(Const c) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.c.accept(IArithVisitor visitor) --R
+		-*/
+    return new Const(c.num * 2);
+  }
+
+  public IArith visitFormula(Formula f) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.f.accept(IArithVisitor visitor) --R
+		-*/
+    return new Formula(f.fun, f.name, this.apply(f.left), this.apply(f.right));
+  }
 }
 
-class NoMethods {
+class AllSmallVisitor implements IArithVisitor<Boolean> {
 	/*-
-	* FIELDS:
-	* this.tada --int
+	* METHODS:
+	* this.apply(IArith a) --Boolean
+	* this.visitConst(Const c) --Boolean
+	* this.visitFormula(Formula f) --Boolean
 	-*/
-    int tada;
 
-    public NoMethods(int tada) {
-        this.tada = tada;
+  public Boolean apply(IArith a) {
+    return a.accept(this);
+  }
+
+  public Boolean visitConst(Const c) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.c.accept(IArithVisitor visitor) --R
+		-*/
+    return c.num < 10;
+  }
+
+  public Boolean visitFormula(Formula f) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.f.accept(IArithVisitor visitor) --R
+		-*/
+    return this.apply(f.left) && this.apply(f.right);
+  }
+}
+
+class NoDivBy0 implements IArithVisitor<Boolean> {
+	/*-
+	* METHODS:
+	* this.apply(IArith a) --Boolean
+	* this.visitConst(Const c) --Boolean
+	* this.visitFormula(Formula f) --Boolean
+	-*/
+
+  public Boolean apply(IArith a) {
+    return a.accept(this);
+  }
+
+  public Boolean visitConst(Const c) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.c.accept(IArithVisitor visitor) --R
+		-*/
+    return true;
+  }
+
+  public Boolean visitFormula(Formula f) {
+		/*-
+		* METHODS FROM PARAMS:
+		* this.f.accept(IArithVisitor visitor) --R
+		-*/
+    if (f.name.equals("div")) {
+      return this.apply(f.left) && this.apply(f.right)
+          && Math.abs((new EvalVisitor()).apply(f.right)) > 0.0001;
     }
+    else {
+      return this.apply(f.left) && this.apply(f.right);
+    }
+  }
+
 }

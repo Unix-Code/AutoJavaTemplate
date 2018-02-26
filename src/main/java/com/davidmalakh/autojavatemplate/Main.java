@@ -10,7 +10,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,8 +24,8 @@ public class Main {
 
     public static void main(String[] args) {
         Main main = new Main();
-
-        String path = args[0];
+        System.out.println(Paths.get("").toAbsolutePath().toString());
+        String path = "src\\main\\java\\com\\davidmalakh\\autojavatemplate\\TestCase.java";//args[0];
 
         main.addTemplatesToFile(path);
     }
@@ -55,20 +57,22 @@ public class Main {
     
     public ArrayList<String> addClassMethodTemplates(ArrayList<String> startFileLines, JavaClass c, List<JavaClass> classes) {
         ArrayList<String> fileLines = startFileLines;
-        
+
         for (JavaMethod m : c.getMethods().stream().filter((m) -> !m.isAbstract()).collect(Collectors.toList())) {
+            System.out.println(c.getName() + ": " + m.getName());
             ArrayList<String> template = new ArrayList<>();
             
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
             if (!methodsFromParams.isEmpty()) {
                 template.add("\t\t/*-");
+                System.out.println(methodsFromParams);
                 template.addAll(methodsFromParams);
                 template.add("\t\t-*/");
             }
 
             fileLines = this.addMethodTemplate(fileLines, template, m);
         }
-        
+
         return fileLines;
     }
     
@@ -158,10 +162,14 @@ public class Main {
     public ArrayList<String> addMethodTemplate(ArrayList<String> startFileLines, ArrayList<String> template, JavaMethod m) {
         ArrayList<String> fileLines = startFileLines;
         
+        String insideClass = "";
         for (int i = 0; i < fileLines.size(); i++) {
             String line = fileLines.get(i);
-
-            if (line.contains(m.getReturns().getName() + " " + m.getName() + "(" + this.getParamList(m) + ")") && line.endsWith("{")) {
+            if ((line.contains("class ") || line.contains("interface ")) && line.endsWith("{")) {
+                List<String> tokens = Arrays.asList(line.split("[ ]")).stream().filter((l) -> !l.isEmpty()).collect(Collectors.toList());
+                insideClass = tokens.get(tokens.indexOf((line.contains("class") ? "class" : "interface")) + 1);
+            } 
+            if (insideClass.equals(m.getDeclaringClass().getName()) &&  line.contains(m.getReturns().getName() + " " + m.getName() + "(" + this.getParamList(m) + ")") && line.endsWith("{")) {
                 fileLines.addAll(i + 1, template);
             }
         }
