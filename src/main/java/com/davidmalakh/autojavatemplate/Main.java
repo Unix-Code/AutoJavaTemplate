@@ -57,13 +57,11 @@ public class Main {
         ArrayList<String> fileLines = startFileLines;
 
         for (JavaMethod m : c.getMethods().stream().filter((m) -> !m.isAbstract()).collect(Collectors.toList())) {
-            System.out.println(c.getName() + ": " + m.getName());
             ArrayList<String> template = new ArrayList<>();
             
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
             if (!methodsFromParams.isEmpty()) {
                 template.add("\t\t/*-");
-                System.out.println(methodsFromParams);
                 template.addAll(methodsFromParams);
                 template.add("\t\t-*/");
             }
