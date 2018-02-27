@@ -4,28 +4,43 @@ import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaSource;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 /**
  *
  * @author David
  */
-public class Main {
+public class Main extends JPanel implements ActionListener {
+  
+  private static final long serialVersionUID = 1L;
+
+  // GUI Shit
+  static private final String newline = "\n";
+  JButton openButton, saveButton;
+  JTextArea log;
+  JFileChooser fc;
 
     public static void main(String[] args) {
-        Main main = new Main();
-        String path = args[0];
+        
+        //Schedule a job for the event dispatch thread:
+        //creating and showing this application's GUI.
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                //Turn off metal's use of bold fonts
+                UIManager.put("swing.boldMetal", Boolean.FALSE); 
+                createAndShowGUI();
+            }
+        });
+        
 
-        main.addTemplatesToFile(path);
     }
 
     public void addTemplatesToFile(String path) {
@@ -274,4 +289,78 @@ public class Main {
                 .map((p) -> p.getType().getValue() + " " + p.getName())
                 .collect(Collectors.joining(", "));
     }
+    
+    // GUI
+
+    public Main() {
+        super(new BorderLayout());
+
+        //Create the log first, because the action listeners
+        //need to refer to it.
+        log = new JTextArea(5,20);
+        log.setMargin(new Insets(5,5,5,5));
+        log.setEditable(false);
+        JScrollPane logScrollPane = new JScrollPane(log);
+
+        //Create a file chooser
+        fc = new JFileChooser();
+
+        //Create the open button.  We use the image from the JLF
+        //Graphics Repository (but we extracted it from the jar).
+        openButton = new JButton("Open a File...");
+        openButton.addActionListener(this);
+
+        //For layout purposes, put the buttons in a separate panel
+        JPanel buttonPanel = new JPanel(); //use FlowLayout
+        buttonPanel.add(openButton);
+        //buttonPanel.add(saveButton);
+
+        //Add the buttons and the log to this panel.
+        add(buttonPanel, BorderLayout.PAGE_START);
+        add(logScrollPane, BorderLayout.CENTER);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+
+        //Handle open button action.
+        if (e.getSource() == openButton) {
+            int returnVal = fc.showOpenDialog(Main.this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                //This is where a real application would open the file.
+                log.append("Opening: " + file.getName() + "." + newline);
+                log.append(file.getAbsolutePath() + newline);
+                try {
+                addTemplatesToFile(file.getAbsolutePath());
+                log.append("Template Made");
+                } catch(Exception er) {
+                  log.append("Error");
+                }
+                
+            } else {
+                log.append("Open command cancelled by user." + newline);
+            }
+            log.setCaretPosition(log.getDocument().getLength());
+        }
+    }
+
+    /**
+     * Create the GUI and show it.  For thread safety,
+     * this method should be invoked from the
+     * event dispatch thread.
+     */
+    private static void createAndShowGUI() {
+        //Create and set up the window.
+        JFrame frame = new JFrame("FileChooserDemo");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Add content to the window.
+        frame.add(new Main());
+
+        //Display the window.
+        frame.pack();
+        frame.setVisible(true);
+    }
+
 }
