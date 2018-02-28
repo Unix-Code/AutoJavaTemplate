@@ -125,7 +125,7 @@ public class Main extends JPanel implements ActionListener {
                 template.add("\t\t/*-");
 //                template.addAll(fieldsFromParams);
                 template.addAll(methodsFromParams);
-                template.add("\t\t-*/");
+                template.add("\t\t */");
             }
             classMethodTemplatesInfo.put(m.getLineNumber(), template);
         });
@@ -197,7 +197,7 @@ public class Main extends JPanel implements ActionListener {
                     template.add("\t *");
                     template.add("\t * PLUS EVERYTHING FROM SUPER CLASS:  " + c.getSuperJavaClass().getSimpleName());
                 }
-                template.add("\t-*/");
+                template.add("\t */");
             }
             templatesInfo.put(c.getLineNumber(), template);
         });
@@ -211,7 +211,7 @@ public class Main extends JPanel implements ActionListener {
         boolean inComment = false;
         for (int i = fileLines.size() - 1; i >= 0; i--) {
             String line = fileLines.get(i);
-            if (line.endsWith("-*/")) {
+            if (line.endsWith("*/")) {
                 inComment = true;
             }
 
