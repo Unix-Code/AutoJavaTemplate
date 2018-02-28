@@ -7,7 +7,7 @@ Finished:
 	* Methods
 	* "everything from super"
 - Method Templates
-	* Fields From Params
+	* Fields From Params <- Removed Temporarily until Config File Support is Added
 	* Methods From Params
 
 W.I.P :
