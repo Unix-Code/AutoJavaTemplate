@@ -6,7 +6,6 @@ import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaSource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.io.*;
@@ -122,9 +121,9 @@ public class Main extends JPanel implements ActionListener {
 
             ArrayList<String> fieldsFromParams = this.addFieldsFromParams(m, classes);
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
-            if (!fieldsFromParams.isEmpty() || !methodsFromParams.isEmpty()) {
+            if (/*!fieldsFromParams.isEmpty() || */!methodsFromParams.isEmpty()) {
                 template.add("\t\t/*-");
-                template.addAll(fieldsFromParams);
+//                template.addAll(fieldsFromParams);
                 template.addAll(methodsFromParams);
                 template.add("\t\t-*/");
             }
