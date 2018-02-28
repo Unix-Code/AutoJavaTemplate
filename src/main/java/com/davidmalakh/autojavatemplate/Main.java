@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.*;
 
 /**
@@ -34,8 +37,7 @@ public class Main extends JPanel implements ActionListener {
                 createAndShowGUI();
             }
         });
-
-    }
+    }    
 
     public void addTemplatesToFile(String path) {
         ArrayList<String> fileLines = this.readFileIntoList(path);
@@ -44,41 +46,114 @@ public class Main extends JPanel implements ActionListener {
 
         this.writeToFileFromList(fileLines, path);
 
-        fileLines = this.addClassTemplates(fileLines, path);
-
-        fileLines = this.addAllMethodTemplates(fileLines, path);
-
+        Map<Integer, ArrayList<String>> allTemplatesInfo = new HashMap<>();
+        allTemplatesInfo.putAll(this.addClassTemplates(path));
+        allTemplatesInfo.putAll(this.addAllMethodTemplates(path));
+        
+        allTemplatesInfo = this.adjustAllTemplatesInfo(allTemplatesInfo);
+        
+        fileLines = this.addAllTemplatesToFileLines(fileLines, allTemplatesInfo);
+        
         this.writeToFileFromList(fileLines, path);
     }
-
-    public ArrayList<String> addAllMethodTemplates(ArrayList<String> startFileLines, String path) {
-        ArrayList<String> fileLines = startFileLines;
-        List<JavaClass> classes = this.getClassesFromFile(path);
-
-        for (JavaClass c : classes) {
-            fileLines = this.addClassMethodTemplates(fileLines, c, classes);
+    
+    public Map<Integer, ArrayList<String>> adjustAllTemplatesInfo(Map<Integer, ArrayList<String>> templatesInfo) {
+        Map<Integer, ArrayList<String>> fixedTemplatesInfo = new HashMap<>();
+        List<Integer> lineNums = new ArrayList<>();
+        List<ArrayList<String>> templates = new ArrayList<>();
+        List<Integer> templateSizes = new ArrayList<>();
+        
+        for (Map.Entry<Integer, ArrayList<String>> entry : templatesInfo.entrySet()) {
+            lineNums.add(entry.getKey());
+            templates.add(entry.getValue());
+            templateSizes.add(entry.getValue().size());
         }
+        
+        lineNums = this.fixLineNumbers(lineNums, templateSizes);
+        
+        for (int i = 0; i < lineNums.size(); i++) {
+            Integer lineNum = lineNums.get(i);
+            ArrayList<String> template = templates.get(i);
+            
+            fixedTemplatesInfo.put(lineNum, template);
+        }
+        
+        return fixedTemplatesInfo;
+    }
+    
+    public List<Integer> fixLineNumbers(List<Integer> start, List<Integer> inTemplateSizes) {
+        List<Integer> templateSizes = inTemplateSizes;
+        List<Integer> templateLineNums = start;
+        
+        for (int i = 0; i < templateLineNums.size(); i++) {
+            Integer key = templateLineNums.get(i);
+            
+            List<Integer> newKeys = new ArrayList<>();
+            
+            for (int j = 0; j < templateLineNums.size(); j++) {
+                Integer innerKey = templateLineNums.get(j);
+                if (key < innerKey) {
+                    newKeys.add(innerKey + templateSizes.get(i));
+                } else {
+                    newKeys.add(innerKey);
+                }
+            }
 
-        return fileLines;
+            templateLineNums = newKeys;
+        }
+        
+        return templateLineNums;
     }
 
-    public ArrayList<String> addClassMethodTemplates(ArrayList<String> startFileLines, JavaClass c, List<JavaClass> classes) {
-        ArrayList<String> fileLines = startFileLines;
+    public Map<Integer, ArrayList<String>> addAllMethodTemplates(String path) {
+        Map<Integer, ArrayList<String>> allMethodTemplatesInfo = new HashMap<>();
+        List<JavaClass> classes = this.getClassesFromFile(path);
+        List<JavaClass> classesAndInterfaces = this.getClassesAndInterfacesFromFile(path);
+        
+        classes.forEach((c) -> allMethodTemplatesInfo.putAll(this.addClassMethodTemplates(c, classesAndInterfaces)));
 
-        for (JavaMethod m : c.getMethods().stream().filter((m) -> !m.isAbstract()).collect(Collectors.toList())) {
+        return allMethodTemplatesInfo;
+    }
+
+    public Map<Integer, ArrayList<String>> addClassMethodTemplates(JavaClass c, List<JavaClass> classes) {
+        Map<Integer, ArrayList<String>> classMethodTemplatesInfo = new HashMap<>();
+        c.getMethods().stream().filter((m) -> !m.isAbstract()).collect(Collectors.toList()).forEach((m) -> {
             ArrayList<String> template = new ArrayList<>();
 
+            ArrayList<String> fieldsFromParams = this.addFieldsFromParams(m, classes);
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
-            if (!methodsFromParams.isEmpty()) {
+            if (!fieldsFromParams.isEmpty() || !methodsFromParams.isEmpty()) {
                 template.add("\t\t/*-");
+                template.addAll(fieldsFromParams);
                 template.addAll(methodsFromParams);
                 template.add("\t\t-*/");
             }
+            classMethodTemplatesInfo.put(m.getLineNumber(), template);
+        });
 
-            fileLines = this.addMethodTemplate(fileLines, template, m);
+        return classMethodTemplatesInfo;
+    }
+    
+    public ArrayList<String> addFieldsFromParams(JavaMethod m, List<JavaClass> classes) {
+        ArrayList<String> template = new ArrayList<>();
+        ArrayList<String> fieldsFromParams = new ArrayList<>();
+        
+        m.getParameters().forEach((p) -> {
+            JavaClass pClass = classes.stream().filter((c) -> c.getName().equals(p.getJavaClass().getName())).findFirst().orElse(null);
+
+            if (pClass != null) {
+                pClass.getFields().forEach((ffp) -> {
+                    fieldsFromParams.add("\t\t * " + p.getName() + "." + ffp.getName() + " --" + ffp.getType().getGenericValue());
+                });
+            }
+        });
+        
+        if (!fieldsFromParams.isEmpty()) {
+            template.add("\t\t * FIELDS FROM PARAMS:");
+            template.addAll(fieldsFromParams);
         }
-
-        return fileLines;
+        
+        return template;
     }
 
     public ArrayList<String> addMethodsFromParams(JavaMethod m, List<JavaClass> classes) {
@@ -90,24 +165,25 @@ public class Main extends JPanel implements ActionListener {
 
             if (pClass != null) {
                 pClass.getMethods().stream().filter((pMethods) -> !pMethods.isAbstract()).forEach((mfp) -> {
-                    methodsFromParams.add("\t\t* this." + p.getName() + "." + mfp.getName() + "(" + this.getParamList(mfp) + ") --" + mfp.getReturns().getName());
+                    methodsFromParams.add("\t\t * " + p.getName() + "." + mfp.getName() + "(" + this.getParamList(mfp) + ") --" + mfp.getReturns().getGenericValue());
                 });
             }
         });
 
         if (!methodsFromParams.isEmpty()) {
-            template.add("\t\t* METHODS FROM PARAMS:");
+            template.add("\t\t * METHODS FROM PARAMS:");
             template.addAll(methodsFromParams);
         }
 
         return template;
     }
 
-    public ArrayList<String> addClassTemplates(ArrayList<String> startFileLines, String path) {
-        ArrayList<String> fileLines = startFileLines;
+    public Map<Integer, ArrayList<String>> addClassTemplates(String path) {
         List<JavaClass> classes = this.getClassesFromFile(path);
 
-        for (JavaClass c : classes) {
+        Map<Integer, ArrayList<String>> templatesInfo = new HashMap<>();
+        
+        classes.forEach((c) -> {
             ArrayList<String> template = new ArrayList<>();
 
             ArrayList<String> fields = this.addFieldsToTemplate(c);
@@ -119,15 +195,15 @@ public class Main extends JPanel implements ActionListener {
                 template.addAll(methods);
                 template.addAll(methodsFromFields);
                 if (!c.getSuperJavaClass().getName().equals(c.getName()) && !c.getSuperJavaClass().getName().equals("Object")) {
-                    template.add("\t*");
-                    template.add("\t* PLUS EVERYTHING FROM SUPER CLASS:  " + c.getSuperJavaClass().getSimpleName());
+                    template.add("\t *");
+                    template.add("\t * PLUS EVERYTHING FROM SUPER CLASS:  " + c.getSuperJavaClass().getSimpleName());
                 }
                 template.add("\t-*/");
             }
-            fileLines = this.addClassTemplate(fileLines, template, c);
-        }
+            templatesInfo.put(c.getLineNumber(), template);
+        });
 
-        return fileLines;
+        return templatesInfo;
     }
 
     public ArrayList<String> removePreviousComments(ArrayList<String> fullFileLines) {
@@ -151,34 +227,13 @@ public class Main extends JPanel implements ActionListener {
         return fileLines;
     }
 
-    public ArrayList<String> addClassTemplate(ArrayList<String> startFileLines, ArrayList<String> template, JavaClass c) {
+    public ArrayList<String> addAllTemplatesToFileLines(ArrayList<String> startFileLines, Map<Integer, ArrayList<String>> templatesInfo) {
         ArrayList<String> fileLines = startFileLines;
-
-        for (int i = 0; i < fileLines.size(); i++) {
-            String line = fileLines.get(i);
-            if (line.contains("class " + c.getSimpleName()) && line.endsWith("{")) {
-                fileLines.addAll(i + 1, template);
-            }
-        }
-
-        return fileLines;
-    }
-
-    public ArrayList<String> addMethodTemplate(ArrayList<String> startFileLines, ArrayList<String> template, JavaMethod m) {
-        ArrayList<String> fileLines = startFileLines;
-
-        String insideClass = "";
-        for (int i = 0; i < fileLines.size(); i++) {
-            String line = fileLines.get(i);
-            if ((line.contains("class ") || line.contains("interface ")) && line.endsWith("{")) {
-                List<String> tokens = Arrays.asList(line.split("[ ]")).stream().filter((l) -> !l.isEmpty()).collect(Collectors.toList());
-                insideClass = tokens.get(tokens.indexOf((line.contains("class") ? "class" : "interface")) + 1);
-            }
-            if (insideClass.equals(m.getDeclaringClass().getName()) && line.contains(m.getReturns().getName() + " " + m.getName() + "(" + this.getParamList(m) + ")") && line.endsWith("{")) {
-                fileLines.addAll(i + 1, template);
-            }
-        }
-
+        
+        List<Integer> sortedKeys = new ArrayList<>(templatesInfo.keySet());
+        Collections.sort(sortedKeys);
+        sortedKeys.forEach((lineNum) -> fileLines.addAll(lineNum, templatesInfo.get(lineNum)));
+        
         return fileLines;
     }
 
@@ -187,11 +242,11 @@ public class Main extends JPanel implements ActionListener {
         ArrayList<String> fields = new ArrayList<>();
 
         c.getFields().forEach((f) -> {
-            fields.add("\t* this." + f.getName() + " --" + f.getType().getName());
+            fields.add("\t * this." + f.getName() + " --" + f.getType().getGenericValue());
         });
 
         if (!fields.isEmpty()) {
-            template.add("\t* FIELDS:");
+            template.add("\t * FIELDS:");
             template.addAll(fields);
         }
 
@@ -205,12 +260,12 @@ public class Main extends JPanel implements ActionListener {
         c.getMethods().forEach((m) -> {
             if (!m.isAbstract()) {
                 String paramList = this.getParamList(m);
-                methods.add("\t* this." + m.getName() + "(" + paramList + ") --" + m.getReturns().getName());
+                methods.add("\t * this." + m.getName() + "(" + paramList + ") --" + m.getReturns().getGenericValue());
             }
         });
 
         if (!methods.isEmpty()) {
-            template.add("\t* METHODS:");
+            template.add("\t * METHODS:");
             template.addAll(methods);
         }
 
@@ -227,14 +282,14 @@ public class Main extends JPanel implements ActionListener {
                 f.getType().getMethods().forEach((me) -> {
                     if (!me.isAbstract()) {
                         String paramList = this.getParamList(me);
-                        methodsFromFields.add("\t* this." + f.getName() + "." + me.getName() + "(" + paramList + ") --" + me.getReturns().getName());
+                        methodsFromFields.add("\t * this." + f.getName() + "." + me.getName() + "(" + paramList + ") --" + me.getReturns().getGenericValue());
                     }
                 });
             }
         });
 
         if (!methodsFromFields.isEmpty()) {
-            template.add("\t* METHODS FROM FIELDS:");
+            template.add("\t * METHODS FROM FIELDS:");
             template.addAll(methodsFromFields);
         }
 
@@ -267,6 +322,20 @@ public class Main extends JPanel implements ActionListener {
 
         return classes;
     }
+    
+    public List<JavaClass> getClassesAndInterfacesFromFile(String path) {
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        List<JavaClass> classes = new ArrayList<>();
+        JavaSource src;
+        try {
+            src = builder.addSource(new FileReader(path));
+            classes = src.getClasses();
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
+
+        return classes;
+    }
 
     public void writeToFileFromList(ArrayList<String> fileLines, String path) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path))) {
@@ -280,7 +349,7 @@ public class Main extends JPanel implements ActionListener {
 
     public String getParamList(JavaMethod m) {
         return m.getParameters().stream()
-                .map((p) -> p.getType().getValue() + " " + p.getName())
+                .map((p) -> p.getType().getGenericValue() + " " + p.getName())
                 .collect(Collectors.joining(", "));
     }
 
@@ -312,7 +381,6 @@ public class Main extends JPanel implements ActionListener {
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                //This is where a real application would open the file.
                 log.append("Opening: " + file.getName() + ".\n");
                 log.append(file.getAbsolutePath() + "\n");
                 try {
