@@ -54,13 +54,13 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <finalName>AutoJavaTemplate</finalName>
                     <!-- MainClass in mainfest make a executable jar -->
                     <archive>
                         <manifest>
                             <mainClass>com.davidmalakh.autojavatemplate.Main</mainClass>
                         </manifest>
                     </archive>
-
                 </configuration>
                 <executions>
                     <execution>
