@@ -39,8 +39,8 @@ public class Main extends JPanel implements ActionListener {
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(openButton);
 
-        add(buttonPanel, BorderLayout.PAGE_START);
-        add(logScrollPane, BorderLayout.CENTER);
+        this.add(buttonPanel, BorderLayout.PAGE_START);
+        this.add(logScrollPane, BorderLayout.CENTER);
     }
 
     public void actionPerformed(ActionEvent e) {
