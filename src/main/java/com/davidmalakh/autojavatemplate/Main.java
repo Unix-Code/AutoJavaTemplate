@@ -355,8 +355,10 @@ public class Main extends JPanel implements ActionListener {
     // GUI
     public Main() {
         super(new BorderLayout());
-
+        
         log = new JTextArea(5, 20);
+        log.setDragEnabled(false);
+        log.setFont(new Font("Consolas", 1, 14));
         log.setMargin(new Insets(5, 5, 5, 5));
         log.setEditable(false);
         JScrollPane logScrollPane = new JScrollPane(log);
@@ -380,10 +382,11 @@ public class Main extends JPanel implements ActionListener {
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
+                
                 log.append("Opening: " + file.getName() + ".\n");
                 log.append(file.getAbsolutePath() + "\n");
                 try {
-                    addTemplatesToFile(file.getAbsolutePath());
+                    this.addTemplatesToFile(file.getAbsolutePath());
                     log.append("Template Made");
                 } catch (Exception er) {
                     log.append("Error");
@@ -399,10 +402,18 @@ public class Main extends JPanel implements ActionListener {
     private static void createAndShowGUI() {
         JFrame frame = new JFrame("Auto Template");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        
+        frame.setPreferredSize(new Dimension(640, 480));
+        frame.setSize(640, 480);
+        frame.setMaximumSize(new Dimension(1280, 720));
+        frame.setMinimumSize(new Dimension(320, 240));
+        
         frame.add(new Main());
 
         frame.pack();
+
+        frame.setLocationRelativeTo(null);
+        
         frame.setVisible(true);
     }
 }
