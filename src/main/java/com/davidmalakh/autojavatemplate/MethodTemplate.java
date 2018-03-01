@@ -29,10 +29,12 @@ public class MethodTemplate extends JavaTemplate {
         c.getMethods().stream().filter((m) -> !m.isAbstract()).collect(Collectors.toList()).forEach((m) -> {
             ArrayList<String> template = new ArrayList<>();
 
+            ArrayList<String> methodParams = this.addMethodParams(m);
             ArrayList<String> fieldsFromParams = this.addFieldsFromParams(m, classes);
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
-            if (/*!fieldsFromParams.isEmpty() || */!methodsFromParams.isEmpty()) {
+            if (/*!fieldsFromParams.isEmpty() || */!methodParams.isEmpty() || !methodsFromParams.isEmpty()) {
                 template.add("\t\t/*-");
+                template.addAll(methodParams);
 //                template.addAll(fieldsFromParams);
                 template.addAll(methodsFromParams);
                 template.add("\t\t */");
@@ -43,6 +45,23 @@ public class MethodTemplate extends JavaTemplate {
         return classMethodTemplatesInfo;
     }
 
+    public ArrayList<String> addMethodParams(JavaMethod m) {
+        ArrayList<String> template = new ArrayList<>();
+        ArrayList<String> methodParams = new ArrayList<>();
+        
+        m.getParameters().forEach((p) -> methodParams.add("\t\t * " + p.getName() + " --" + p.getType().getGenericValue()));
+        
+        if (!methodParams.isEmpty()) {
+            template.add("\t\t * PARAMS:");
+            template.addAll(methodParams);
+        }
+        else {
+            template.add("\t\t * EVERYTHING FROM CLASS TEMPLATE");
+        }
+        
+        return template;
+    }
+    
     public ArrayList<String> addFieldsFromParams(JavaMethod m, List<JavaClass> classes) {
         ArrayList<String> template = new ArrayList<>();
         ArrayList<String> fieldsFromParams = new ArrayList<>();
