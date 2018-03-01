@@ -73,7 +73,7 @@ public class ClassTemplate extends JavaTemplate {
 
     public Map<Integer, ArrayList<String>> addClassTemplates(String path) {
         List<JavaClass> classes = this.getClassesFromFile(path, false);
-
+        List<JavaClass> classesAndInterfaces = this.getClassesFromFile(path, true);
         Map<Integer, ArrayList<String>> templatesInfo = new HashMap<>();
 
         classes.forEach((c) -> {
@@ -81,7 +81,7 @@ public class ClassTemplate extends JavaTemplate {
 
             ArrayList<String> fields = this.addFieldsToTemplate(c);
             ArrayList<String> methods = this.addMethodsToTemplate(c);
-            ArrayList<String> methodsFromFields = this.addMethodsFromFieldsToTemplate(classes, c);
+            ArrayList<String> methodsFromFields = this.addMethodsFromFieldsToTemplate(classesAndInterfaces, c);
             if (!fields.isEmpty() || !methods.isEmpty() || !methodsFromFields.isEmpty()) {
                 template.add("\t/*-");
                 template.addAll(fields);
