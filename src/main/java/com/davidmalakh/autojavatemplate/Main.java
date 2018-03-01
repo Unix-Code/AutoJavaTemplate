@@ -12,7 +12,7 @@ import javax.swing.*;
  *
  * @author David
  */
-public class Main extends JPanel implements ActionListener {
+public class Main extends JPanel implements ActionListener, ComponentListener {
 
     private static final long serialVersionUID = 1L;
 
@@ -26,13 +26,18 @@ public class Main extends JPanel implements ActionListener {
         
         log = new JTextArea(5, 20);
         log.setDragEnabled(false);
-        log.setFont(new Font("Consolas", 1, 14));
+        
+        log.setFont(new Font("Consolas", Font.BOLD, this.getWidth()/35));
         log.setMargin(new Insets(5, 5, 5, 5));
         log.setEditable(false);
         JScrollPane logScrollPane = new JScrollPane(log);
 
         fc = new JFileChooser();
 
+        fc.setPreferredSize(new Dimension(640, 480));
+        fc.setMinimumSize(new Dimension(640, 480));
+        fc.setMaximumSize(new Dimension(960, 720));
+        
         openButton = new JButton("Open a File...");
         openButton.addActionListener(this);
 
@@ -66,18 +71,36 @@ public class Main extends JPanel implements ActionListener {
             log.setCaretPosition(log.getDocument().getLength());
         }
     }
+    
+    public void componentResized(ComponentEvent e) {
+        int width = e.getComponent().getWidth();
+        
+        int fontSize = width/35;
+        this.log.setFont(new Font("Consolas", Font.BOLD, ((fontSize < 10)? 10 : fontSize)));
+        JFrame frame = (JFrame) SwingUtilities.windowForComponent(this);
+        frame.revalidate();
+    }
+
+    public void componentMoved(ComponentEvent e) {}
+
+    public void componentShown(ComponentEvent e) {}
+
+    public void componentHidden(ComponentEvent e) {}
 
     private static void createAndShowGUI() {
         JFrame frame = new JFrame("Auto Template");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
-        frame.setPreferredSize(new Dimension(640, 480));
-        frame.setSize(640, 480);
-        frame.setMaximumSize(new Dimension(1280, 720));
+        frame.setPreferredSize(new Dimension(960, 720));
+        frame.setMaximumSize(new Dimension(960, 720));
         frame.setMinimumSize(new Dimension(320, 240));
         
-        frame.add(new Main());
+        Main m = new Main();
+        
+        frame.add(m);
 
+        frame.addComponentListener(m);
+        
         frame.pack();
 
         frame.setLocationRelativeTo(null);

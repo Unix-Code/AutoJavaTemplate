@@ -72,7 +72,7 @@ public class ClassTemplate extends JavaTemplate {
     }
 
     public Map<Integer, ArrayList<String>> addClassTemplates(String path) {
-        List<JavaClass> classes = this.getClassesFromFile(path);
+        List<JavaClass> classes = this.getClassesFromFile(path, false);
 
         Map<Integer, ArrayList<String>> templatesInfo = new HashMap<>();
 

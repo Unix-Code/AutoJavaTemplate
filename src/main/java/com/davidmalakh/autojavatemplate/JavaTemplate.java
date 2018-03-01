@@ -22,31 +22,22 @@ abstract class JavaTemplate {
                 .collect(Collectors.joining(", "));
     }
 
-    public List<JavaClass> getClassesFromFile(String path) {
-        JavaProjectBuilder builder = new JavaProjectBuilder();
-        List<JavaClass> classes = new ArrayList<>();
-        JavaSource src;
-        try {
-            src = builder.addSource(new FileReader(path));
-            classes = src.getClasses().stream().filter((c) -> !c.isInterface()).collect(Collectors.toList());
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        }
-
-        return classes;
-    }
-
-    public List<JavaClass> getClassesAndInterfacesFromFile(String path) {
+    public List<JavaClass> getClassesFromFile(String path, boolean includeInterfaces) {
         JavaProjectBuilder builder = new JavaProjectBuilder();
         List<JavaClass> classes = new ArrayList<>();
         JavaSource src;
         try {
             src = builder.addSource(new FileReader(path));
             classes = src.getClasses();
+            if (!includeInterfaces) classes = classes.stream().filter((c) -> !c.isInterface()).collect(Collectors.toList());
         } catch (FileNotFoundException ex) {
             ex.printStackTrace();
         }
 
-        return classes;
+        return classes.stream().filter((c) -> !this.isExamplesClass(c)).collect(Collectors.toList());
+    }
+    
+    private boolean isExamplesClass(JavaClass c) {
+        return c.getName().startsWith("Example");
     }
 }

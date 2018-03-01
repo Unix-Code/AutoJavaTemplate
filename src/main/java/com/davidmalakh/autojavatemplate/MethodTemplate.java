@@ -16,8 +16,8 @@ public class MethodTemplate extends JavaTemplate {
 
     public Map<Integer, ArrayList<String>> addAllMethodTemplates(String path) {
         Map<Integer, ArrayList<String>> allMethodTemplatesInfo = new HashMap<>();
-        List<JavaClass> classes = this.getClassesFromFile(path);
-        List<JavaClass> classesAndInterfaces = this.getClassesAndInterfacesFromFile(path);
+        List<JavaClass> classes = this.getClassesFromFile(path, false);
+        List<JavaClass> classesAndInterfaces = this.getClassesFromFile(path, true);
 
         classes.forEach((c) -> allMethodTemplatesInfo.putAll(this.addClassMethodTemplates(c, classesAndInterfaces)));
 
