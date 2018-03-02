@@ -5,6 +5,7 @@ Finished:
 - Class templates
 	* Fields
 	* Methods
+	* Methods From Fields
 	* "everything from super"
 - Method Templates
 	* List of Params <- Disabled since it doesn't meet specifications
