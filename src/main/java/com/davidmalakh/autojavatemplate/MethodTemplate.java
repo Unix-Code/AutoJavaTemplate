@@ -32,13 +32,14 @@ public class MethodTemplate extends JavaTemplate {
             ArrayList<String> methodParams = this.addMethodParams(m);
             ArrayList<String> fieldsFromParams = this.addFieldsFromParams(m, classes);
             ArrayList<String> methodsFromParams = this.addMethodsFromParams(m, classes);
-            if (/*!fieldsFromParams.isEmpty() || */!methodParams.isEmpty() || !methodsFromParams.isEmpty()) {
-                template.add("\t\t/*-");
-                template.addAll(methodParams);
-//                template.addAll(fieldsFromParams);
-                template.addAll(methodsFromParams);
-                template.add("\t\t */");
-            }
+            
+            
+            template.add("\t\t/*- TEMPLATE: EVERYTHING IN " + c.getGenericValue() + ", PLUS");
+//            template.addAll(methodParams);  <- Not included in Specifications
+            template.addAll(fieldsFromParams);
+            template.addAll(methodsFromParams);
+            template.add("\t\t */");
+            
             classMethodTemplatesInfo.put(m.getLineNumber(), template);
         });
 
@@ -51,12 +52,12 @@ public class MethodTemplate extends JavaTemplate {
         
         m.getParameters().forEach((p) -> methodParams.add("\t\t * " + p.getName() + " --" + p.getType().getGenericValue()));
         
+        template.add("\t\t * PARAMS:");
         if (!methodParams.isEmpty()) {
-            template.add("\t\t * PARAMS:");
             template.addAll(methodParams);
         }
         else {
-            template.add("\t\t * EVERYTHING FROM CLASS TEMPLATE");
+            template.add("\t\t * N/A");
         }
         
         return template;
@@ -76,9 +77,11 @@ public class MethodTemplate extends JavaTemplate {
             }
         });
 
+        template.add("\t\t * FIELDS FROM PARAMS:");
         if (!fieldsFromParams.isEmpty()) {
-            template.add("\t\t * FIELDS FROM PARAMS:");
             template.addAll(fieldsFromParams);
+        } else {
+            template.add("\t\t * N/A");
         }
 
         return template;
@@ -98,9 +101,11 @@ public class MethodTemplate extends JavaTemplate {
             }
         });
 
+        template.add("\t\t * METHODS FROM PARAMS:");
         if (!methodsFromParams.isEmpty()) {
-            template.add("\t\t * METHODS FROM PARAMS:");
             template.addAll(methodsFromParams);
+        } else {
+            template.add("\t\t * N/A");
         }
 
         return template;

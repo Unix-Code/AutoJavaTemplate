@@ -20,9 +20,11 @@ public class ClassTemplate extends JavaTemplate {
             fields.add("\t * this." + f.getName() + " --" + f.getType().getGenericValue());
         });
 
+        template.add("\t * FIELDS:");
         if (!fields.isEmpty()) {
-            template.add("\t * FIELDS:");
             template.addAll(fields);
+        } else {
+            template.add("\t * N/A");
         }
 
         return template;
@@ -39,9 +41,11 @@ public class ClassTemplate extends JavaTemplate {
             }
         });
 
+        template.add("\t * METHODS:");
         if (!methods.isEmpty()) {
-            template.add("\t * METHODS:");
             template.addAll(methods);
+        } else {
+            template.add("\t * N/A");
         }
 
         return template;
@@ -63,9 +67,11 @@ public class ClassTemplate extends JavaTemplate {
             }
         });
 
+        template.add("\t * METHODS FROM FIELDS:");
         if (!methodsFromFields.isEmpty()) {
-            template.add("\t * METHODS FROM FIELDS:");
             template.addAll(methodsFromFields);
+        } else {
+            template.add("\t * N/A");
         }
 
         return template;
@@ -82,17 +88,17 @@ public class ClassTemplate extends JavaTemplate {
             ArrayList<String> fields = this.addFieldsToTemplate(c);
             ArrayList<String> methods = this.addMethodsToTemplate(c);
             ArrayList<String> methodsFromFields = this.addMethodsFromFieldsToTemplate(classesAndInterfaces, c);
-            if (!fields.isEmpty() || !methods.isEmpty() || !methodsFromFields.isEmpty()) {
-                template.add("\t/*-");
-                template.addAll(fields);
-                template.addAll(methods);
-                template.addAll(methodsFromFields);
-                if (!c.getSuperJavaClass().getName().equals(c.getName()) && !c.getSuperJavaClass().getName().equals("Object")) {
-                    template.add("\t *");
-                    template.add("\t * PLUS EVERYTHING FROM SUPER CLASS:  " + c.getSuperJavaClass().getSimpleName());
-                }
-                template.add("\t */");
+            
+            template.add("\t/*- TEMPLATE:");
+            template.addAll(fields);
+            template.addAll(methods);
+            template.addAll(methodsFromFields);
+            if (!c.getSuperJavaClass().getName().equals(c.getName()) && !c.getSuperJavaClass().getName().equals("Object")) {
+                template.add("\t *");
+                template.add("\t * PLUS EVERYTHING FROM SUPER CLASS:  " + c.getSuperJavaClass().getSimpleName());
             }
+            template.add("\t */");
+            
             templatesInfo.put(c.getLineNumber(), template);
         });
 
