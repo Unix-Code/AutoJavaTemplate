@@ -16,7 +16,7 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
 
     private static final long serialVersionUID = 1L;
 
-    JButton openButton, saveButton;
+    JButton openButton;
     JTextArea log;
     JFileChooser fc;
 
@@ -39,6 +39,8 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         fc.setMaximumSize(new Dimension(960, 720));
         
         openButton = new JButton("Open a File...");
+        openButton.setFont(new Font("Consolas", Font.PLAIN, Math.max(14, this.getWidth()/70)));
+        
         openButton.addActionListener(this);
 
         JPanel buttonPanel = new JPanel();
@@ -76,7 +78,10 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         int width = e.getComponent().getWidth();
         
         int fontSize = width/35;
-        this.log.setFont(new Font("Consolas", Font.BOLD, ((fontSize < 10)? 10 : fontSize)));
+        this.log.setFont(new Font("Consolas", Font.BOLD, Math.max(10, fontSize)));
+        this.openButton.setPreferredSize(new Dimension(width/2, this.openButton.getHeight()));
+        this.openButton.setFont(new Font("Consolas", Font.PLAIN, Math.max(14, fontSize/2)));
+        
         JFrame frame = (JFrame) SwingUtilities.windowForComponent(this);
         frame.revalidate();
     }
