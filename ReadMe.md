@@ -12,7 +12,7 @@ Finished:
 	* Fields From Params
 	* Methods From Params
 - N/A for empty sections
-- Meets all specifications outlined on piazza
+- Meets all specifications outlined on Piazza
 - Scaleable UI with Text Log and File Chooser
 
 W.I.P :
