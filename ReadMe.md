@@ -16,4 +16,5 @@ Finished:
 - Scaleable UI with Text Log and File Chooser
 
 W.I.P :
+- Multi-File Template Support
 - Other features
