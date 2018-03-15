@@ -40,6 +40,7 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         
         openButton = new JButton("Open a File...");
         openButton.setFont(new Font("Consolas", Font.PLAIN, Math.max(14, this.getWidth()/70)));
+        openButton.setFocusable(false);
         
         openButton.addActionListener(this);
 
