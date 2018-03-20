@@ -65,7 +65,7 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
                     this.generateTemplates(file.getAbsolutePath());
                     log.append("Template Made");
                 } catch (Exception er) {
-                    log.append("Error");
+                    log.append(er.getMessage());
                 }
 
             } else {
@@ -77,7 +77,7 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
     
     public void componentResized(ComponentEvent e) {
         int width = e.getComponent().getWidth();
-        
+      
         int fontSize = width/35;
         this.log.setFont(new Font("Consolas", Font.BOLD, Math.max(10, fontSize)));
         this.openButton.setPreferredSize(new Dimension(width/2, this.openButton.getHeight()));
