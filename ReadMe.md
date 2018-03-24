@@ -14,7 +14,8 @@ Finished:
 - N/A for empty sections
 - Meets all specifications outlined on Piazza
 - Scaleable UI with Text Log and File Chooser
+- Multi-File Template Support
 
 W.I.P :
-- Multi-File Template Support
+- Website + Online Upload Functionality
 - Other features
