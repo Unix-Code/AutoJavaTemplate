@@ -13,8 +13,10 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import spark.utils.IOUtils;
 
 /**
  *
@@ -54,13 +56,20 @@ public class Main {
                 Files.copy(input, tempFile, StandardCopyOption.REPLACE_EXISTING);
             }
 
-            System.out.println(Paths.get("").toAbsolutePath().toString());
-
             logInfo(req, tempFile);
             Main main = new Main();
             main.generateTemplates(tempFile.toString());
 
-            return "<a href=\'" + tempFile.getFileName() + "\' download>Download</a>";
+            // Ready Response
+            res.raw().setContentType("application/octet-stream");
+            res.raw().setContentLength((int) tempFile.toFile().length());
+            res.raw().setHeader("Content-Disposition", "attachment; filename=" + tempFile.getFileName());
+
+            try (ServletOutputStream os = res.raw().getOutputStream(); FileInputStream in = new FileInputStream(tempFile.toFile())) {
+                IOUtils.copy(in, os);
+            }
+            
+            return res.raw();
         });
     }
 
