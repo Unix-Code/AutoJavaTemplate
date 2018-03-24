@@ -20,7 +20,6 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
     private static final long serialVersionUID = 1L;
 
     JButton openButton;
-    JCheckBox mop;
     JTextArea log;
     JFileChooser fc;
 
@@ -49,16 +48,10 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         
         openButton.addActionListener(this);
         
-        // Methods On Parameters
-        mop = new JCheckBox("Methods On Parameters", true);
-        mop.setBounds(100,100, 50,50);
-        
         // Add Elements to GUI
         JPanel f = new JPanel();
         f.add(openButton);        
         
-        f.add(mop);
-
         this.add(f, BorderLayout.PAGE_START);
         this.add(logScrollPane, BorderLayout.CENTER);
     }
@@ -154,9 +147,8 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
 
         Map<Integer, ArrayList<String>> allTemplatesInfo = new HashMap<>();
         allTemplatesInfo.putAll(ct.addClassTemplates(path));
-        if (this.mop.isSelected()) {
-          allTemplatesInfo.putAll(mt.addAllMethodTemplates(path));
-        }
+        allTemplatesInfo.putAll(mt.addAllMethodTemplates(path));
+        
         allTemplatesInfo = ts.adjustAllTemplatesInfo(allTemplatesInfo);
         
         ts.writeToFilesFromList(ts.addAllTemplatesToFileLines(fileLines, allTemplatesInfo), paths);
