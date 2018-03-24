@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.*;
 
 /**
@@ -34,7 +37,7 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         JScrollPane logScrollPane = new JScrollPane(log);
 
         fc = new JFileChooser();
-
+        fc.setMultiSelectionEnabled(true);
         fc.setPreferredSize(new Dimension(640, 480));
         fc.setMinimumSize(new Dimension(640, 480));
         fc.setMaximumSize(new Dimension(960, 720));
@@ -66,15 +69,20 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
             int returnVal = fc.showOpenDialog(Main.this);
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File file = fc.getSelectedFile();
+                File[] files = fc.getSelectedFiles();
+                for (File file : files) {
+                    log.append("Opening: " + file.getName() + ".\n");
+                    log.append(file.getAbsolutePath() + "\n");
+                }
                 
-                log.append("Opening: " + file.getName() + ".\n");
-                log.append(file.getAbsolutePath() + "\n");
                 try {
-                    this.generateTemplates(file.getAbsolutePath());
+                    List<String> paths = Arrays.asList(files).stream()
+                            .map((f) -> f.getAbsolutePath())
+                            .collect(Collectors.toList());
+                    this.generateTemplates(paths);
                     log.append("Template Made");
                 } catch (Exception er) {
-                    log.append(er.getMessage());
+                    log.append("Error: " + er);
                 }
 
             } else {
@@ -133,11 +141,13 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         });
     }    
 
-    public void generateTemplates(String path) {
+    public void generateTemplates(List<String> paths) {
         TemplateSerializer ts = new TemplateSerializer();
         FileLinesDeserializer fd = new FileLinesDeserializer();
         ClassTemplate ct = new ClassTemplate();
         MethodTemplate mt = new MethodTemplate();
+        
+        String path = fd.getTempMultiFile(paths).getAbsolutePath();
         
         ArrayList<String> fileLines = fd.removePreviousComments(path);
         ts.writeToFileFromList(fileLines, path);
@@ -149,6 +159,6 @@ public class Main extends JPanel implements ActionListener, ComponentListener {
         }
         allTemplatesInfo = ts.adjustAllTemplatesInfo(allTemplatesInfo);
         
-        ts.writeToFileFromList(ts.addAllTemplatesToFileLines(fileLines, allTemplatesInfo), path);
+        ts.writeToFilesFromList(ts.addAllTemplatesToFileLines(fileLines, allTemplatesInfo), paths);
     }
 }

@@ -1,9 +1,14 @@
 package com.davidmalakh.autojavatemplate;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -51,5 +56,26 @@ public class FileLinesDeserializer {
         for (int i : lineNumsToRemove) fileLines.remove(i);
         
         return fileLines;
+    }
+    
+    public File getTempMultiFile(List<String> paths) {
+        TemplateSerializer ts = new TemplateSerializer();
+        ArrayList<String> multiFileLines = new ArrayList<>();
+        File temp = null;
+        
+        for (String path : paths) {
+            multiFileLines.addAll(this.readFileIntoList(path));
+            multiFileLines.add("// End of Class");
+        }
+        
+        try {
+            temp = File.createTempFile("temp_multi", ".java");
+            ts.writeToFileFromList(multiFileLines, temp.getAbsolutePath());
+            temp.deleteOnExit();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        return temp;
     }
 }

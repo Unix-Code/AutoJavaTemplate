@@ -25,6 +25,25 @@ public class TemplateSerializer {
         }
     }
 
+    public void writeToFilesFromList(ArrayList<String> multiFileLines, List<String> paths) {
+        ArrayList<ArrayList<String>> splitMultiLines = new ArrayList<>();
+        
+        int stind  = 0;
+        String endMarker = "// End of Class";
+        while (multiFileLines.contains(endMarker)) {
+            int spind = multiFileLines.indexOf(endMarker);
+            ArrayList<String> subList = new ArrayList<>(multiFileLines.subList(stind, spind));
+            splitMultiLines.add(subList);
+            multiFileLines.remove(endMarker);
+            stind  = spind + 1;
+        }
+        
+        for (int i = 0; i < splitMultiLines.size(); i++) {
+            ArrayList<String> fileLines = splitMultiLines.get(i);
+            this.writeToFileFromList(fileLines, paths.get(i));
+        }
+    }
+    
     public ArrayList<String> addAllTemplatesToFileLines(ArrayList<String> startFileLines, Map<Integer, ArrayList<String>> templatesInfo) {
         ArrayList<String> fileLines = startFileLines;
 
